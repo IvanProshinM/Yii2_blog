@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 
+use app\models\Authorization;
 use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
@@ -41,8 +42,11 @@ class AuthController extends Controller
     }
 
     public function actionAuthorization() {
-        $model = new Registration();
+        $model = new Authorization();
+            if ($model->load(Yii::$app->request->post())&& $model->validate()) {
 
+
+            }
         return $this->render('authorization',['model'=> $model]);
     }
 }

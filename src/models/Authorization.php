@@ -6,29 +6,36 @@ use yii\base\Model;
 
 class Authorization extends Model
 {
-    public $username;
-    public $userSurname;
+
     public $email;
     public $password;
+    public $rememberMe=true;
+
 
 
     public function rules() {
         return [
-            [['username', 'userSurname', 'email', 'password', 'confirmPassword', 'gender'], 'required' ],
+            [['email', 'password'], 'required' ],
             ['email', 'email'],
             [['password'], 'string','min' =>6 , 'max'=> 15],
-            [['confirmPassword'], 'confirmPassword' ],
-            [['username', 'userSurname'],'string', 'min' => 5, 'max' => 15 ],
-            [['username', 'userSurname'], 'match', 'pattern' => '/^[А-яА-Я0-9_ ]/'],
-            ['gender', 'in', 'range' =>[0,1]]
+            ['password', 'validatePassword']
+
         ];
     }
-    public function confirmPassword($attribute) {
-        if (($this->password !== $this->$attribute)) {
-            $this->addError($attribute, 'Введенные пароли не совпадают');
+
+    public function validatePassword ($attribute)
+    {
+        if (!$this->hasErrors()) {
+           $user = $this->getUser();
+        }
+        if (!$user || !$user->validatePassword($this->password)) {
+            $this->addError($attribute, 'Incorrect username or password.');
         }
     }
 
-
-
+    public function getUser() {
+        return  Users::find()
+            ->where(['email'=>$this->email])
+            ->one();
+    }
 }
