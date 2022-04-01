@@ -1,4 +1,5 @@
 <?php
+
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
@@ -10,23 +11,19 @@ use yii\widgets\ActiveForm;
 
 
 
-$this->title = 'Вход';
+$this->title = 'Восстановление пароля';
 ?>
     <h1><?= Html::encode($this->title) ?></h1>
 
-
 <?php $form = ActiveForm::begin(); ?>
+<h2><?= 'Введите свой email' ?></h2>
 <?= $form->field($model, 'email') ?>
-<?= $form->field($model, 'password') ?>
 
 
     <div class="form-group">
         <br>
-        <?= Html::submitButton('Войти', ['class' => 'btn btn-primary']) ?>
+        <?= Html::submitButton('Сбросить пароль', ['class' => 'btn btn-primary']) ?>
     </div>
 
-<?php echo Yii::$app->session->getFlash('alert'); ?>
-
-<?= Html::a('Забыли пароль?', ['auth/recover'], ['class' => 'profile-link']) ?>
 
 <?php ActiveForm::end(); ?>

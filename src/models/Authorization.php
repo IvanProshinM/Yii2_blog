@@ -9,7 +9,7 @@ class Authorization extends Model
 
     public $email;
     public $password;
-    public $rememberMe=true;
+
 
 
 
@@ -34,7 +34,7 @@ class Authorization extends Model
     }
 
     public function getUser() {
-        return  Users::find()
+        return  User::find()
             ->where(['email'=>$this->email])
             ->one();
     }

@@ -12,6 +12,8 @@ class Registration extends Model
     public $password;
     public $confirmPassword;
     public $gender;
+    public $activateHash;
+    public $activatedAt;
 
     public function rules() {
         return [
