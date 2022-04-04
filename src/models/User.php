@@ -13,6 +13,7 @@ use Yii;
  * @property string|null $email
  * @property string|null $password
  * @property string|null $confirmPassword
+ * @property int|null $gender
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -126,7 +127,4 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         $this->password = Yii::$app->security->generatePasswordHash($password);
     }
-
-
-
 }

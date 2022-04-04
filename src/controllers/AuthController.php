@@ -5,6 +5,9 @@ namespace app\controllers;
 
 use app\models\Authorization;
 use app\models\User;
+use app\services\UserAuthorizationService;
+use app\services\UserCreateService;
+use app\services\UserRegistrationNotificationService;
 use Yii;
 use yii\base\Model;
 use yii\filters\AccessControl;
@@ -12,36 +15,48 @@ use yii\web\Controller;
 use yii\web\Response;
 use app\models\Registration;
 use app\models\Recover;
-
+use app\models\Test;
 
 class AuthController extends Controller
 {
+
+    /**
+     * @var UserCreateService
+     */
+    private $userCreateService;
+    /**
+     * @var UserRegistrationNotificationService
+     */
+    private $userRegistrationNotification;
+    /**
+     * @var UserAuthorizationService
+     */
+    private $userAuthorizationService;
+
+    public function __construct(
+        $id,
+        $module,
+        UserCreateService $userCreateService,
+        UserRegistrationNotificationService $userRegistrationNotification,
+        UserAuthorizationService $userAuthorizationService,
+        $config = []
+    )
+    {
+        parent::__construct($id, $module, $config);
+        $this->userCreateService = $userCreateService;
+        $this->userRegistrationNotification = $userRegistrationNotification;
+        $this->userAuthorizationService = $userAuthorizationService;
+
+    }
 
     public function actionRegistration()
     {
         $model = new Registration();
         $session = Yii::$app->session;
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            $User = new User();
-            $User->username = $model->username;
-            $User->userSurname = $model->userSurname;
-            $User->email = $model->email;
-            $User->setPassword($model->password);
-            $User->gender = $model->gender;
-            $User->activateHash = Yii::$app->security->generatePasswordHash($model->email);
-            $User->activatedAt = null;
-            $User->save();
-            $currentUser = User::find()
-                ->where(['activateHash' => $User->activateHash])
-                ->one();
-
-            Yii::$app->mailer->compose('registrationLink', ['user'=>$currentUser])
-                ->setFrom('proshinvanivanoff@yandex.ru')
-                ->setTo($model->email)
-                ->setSubject('Подтверждение регистрации')
-                /* ->setTextBody('Привет')*/
-                /*  ->setHtmlBody('<b>текст сообщения в формате HTML</b>')*/
-                ->send();
+            $user = $this->userCreateService->create($model);
+            $user->save();
+            $this->userRegistrationNotification->send($user);
             $session->setFlash('success', 'Регистрация пройдена. Проверьте почту для активации аккаунта');
 
             return $this->render('registration', ['model' => $model]);
@@ -54,25 +69,15 @@ class AuthController extends Controller
         $model = new Authorization();
         $session = Yii::$app->session;
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-
-            /** @var User|null $currentUser */
-            $currentUser = User::find()
-                ->where(['email' => $model->email])
-                ->one();
-            if ($currentUser && ($currentUser->validatePassword($model->password))) {
-                $session->setFlash('success', 'Вы авторизовались');
+            $currentUser = $this->userAuthorizationService->authorizate($model);
+            if ($currentUser != null) {
                 Yii::$app->user->login($currentUser);
+                $session->setFlash('success', 'Вы успешно авторизовались');
                 return $this->redirect(['site/index']);
 
-            } else {
-
-                $session->setFlash('error', 'Такого пользователя нет в БД');
-
-                return $this->render('authorization', ['model' => $model]);
             }
-
+            $session->setFlash('error', 'Такого пользователя нет в БД или введен неверный пароль');
         }
-
         return $this->render('authorization', ['model' => $model]);
     }
 
@@ -80,10 +85,17 @@ class AuthController extends Controller
     public function actionRecover()
     {
         $model = new Recover();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $currentUser = User::find()
+                ->where(['email' => $model->email])
+                ->one();
+//
+        }
         return $this->render('recover', ['model' => $model]);
     }
 
-    public function actionConfirm() {
+    public function actionConfirm()
+    {
 
     }
 }
