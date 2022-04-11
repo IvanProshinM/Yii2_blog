@@ -21,8 +21,9 @@ class Registration extends Model
             ['email', 'email'],
             [['password'], 'string','min' =>6 , 'max'=> 15],
             [['confirmPassword'], 'confirmPassword' ],
-            [['username', 'userSurname'],'string', 'min' => 5, 'max' => 15 ],
-            [['username', 'userSurname'], 'match', 'pattern' => '/^[А-яА-Я0-9_ ]/'],
+
+            [['username', 'userSurname'], 'match', 'pattern' => '/^[А-яА-Я_ ]/'],
+            [['username', 'userSurname'],'string', 'min' => 5, 'max' => 15],
             ['gender', 'in', 'range' =>[0,1]]
         ];
     }

@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\query\UserQuery;
 use Yii;
+
 
 /**
  * This is the model class for table "user".
@@ -14,6 +16,7 @@ use Yii;
  * @property string|null $password
  * @property string|null $confirmPassword
  * @property int|null $gender
+ * @property int|null $ResetHash
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -54,7 +57,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return isset(self::$user[$id]) ? new static(self::$users[$id]) : null;
+        return self::findOne($id);
     }
 
     /**
@@ -126,5 +129,23 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function setPassword($password)
     {
         $this->password = Yii::$app->security->generatePasswordHash($password);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @return UserQuery the active query used by this AR class.
+     */
+    public static function find()
+    {
+        return new UserQuery(static::class);
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->username === "Ивашка";
     }
 }

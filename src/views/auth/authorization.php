@@ -17,7 +17,7 @@ $this->title = 'Вход';
 
 <?php $form = ActiveForm::begin(); ?>
 <?= $form->field($model, 'email') ?>
-<?= $form->field($model, 'password') ?>
+<?= $form->field($model, 'password')->passwordInput() ?>
 
 
     <div class="form-group">
@@ -27,6 +27,6 @@ $this->title = 'Вход';
 
 <?php echo Yii::$app->session->getFlash('alert'); ?>
 
-<?= Html::a('Забыли пароль?', ['auth/recover'], ['class' => 'profile-link']) ?>
+<?= Html::a('Забыли пароль?', ['auth/recover'], ['target'=>'_blank']) ?>
 
 <?php ActiveForm::end(); ?>

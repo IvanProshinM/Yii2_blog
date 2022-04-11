@@ -4,10 +4,13 @@ namespace app\controllers;
 
 
 use app\models\Authorization;
+use app\models\ChangePassword;
 use app\models\User;
 use app\services\UserAuthorizationService;
 use app\services\UserCreateService;
+use app\services\UserRecoverPasswordService;
 use app\services\UserRegistrationNotificationService;
+use app\services\UserFindEmailService;
 use Yii;
 use yii\base\Model;
 use yii\filters\AccessControl;
@@ -32,6 +35,16 @@ class AuthController extends Controller
      * @var UserAuthorizationService
      */
     private $userAuthorizationService;
+    /**
+     * @var UserRecoverPasswordService
+     */
+    private $userRecoverPasswordService;
+
+    /**
+     * @var UserFindEmailService
+     */
+    private $userFindEmailService;
+
 
     public function __construct(
         $id,
@@ -39,6 +52,8 @@ class AuthController extends Controller
         UserCreateService $userCreateService,
         UserRegistrationNotificationService $userRegistrationNotification,
         UserAuthorizationService $userAuthorizationService,
+        UserRecoverPasswordService $userRecoverPasswordService,
+        UserFindEmailService $userFindEmailService,
         $config = []
     )
     {
@@ -46,6 +61,8 @@ class AuthController extends Controller
         $this->userCreateService = $userCreateService;
         $this->userRegistrationNotification = $userRegistrationNotification;
         $this->userAuthorizationService = $userAuthorizationService;
+        $this->userRecoverPasswordService = $userRecoverPasswordService;
+        $this->userFindEmailService = $userFindEmailService;
 
     }
 
@@ -53,14 +70,27 @@ class AuthController extends Controller
     {
         $model = new Registration();
         $session = Yii::$app->session;
+
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $uniqueMail = $this->userFindEmailService->findMail($model);
+            /*var_dump($uniqueMail);*/
+            if ($uniqueMail) {
+
+                $session->setFlash('error', 'Пользователь с данной почтой существует');
+                return $this->render('registration', ['model' => $model]);
+            }
             $user = $this->userCreateService->create($model);
             $user->save();
             $this->userRegistrationNotification->send($user);
+
+            $model = new Registration();
             $session->setFlash('success', 'Регистрация пройдена. Проверьте почту для активации аккаунта');
 
             return $this->render('registration', ['model' => $model]);
+
         }
+
+
         return $this->render('registration', ['model' => $model]);
     }
 
@@ -71,10 +101,9 @@ class AuthController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $currentUser = $this->userAuthorizationService->authorizate($model);
             if ($currentUser != null) {
-                Yii::$app->user->login($currentUser);
+                Yii::$app->user->login($currentUser, 3600);
                 $session->setFlash('success', 'Вы успешно авторизовались');
                 return $this->redirect(['site/index']);
-
             }
             $session->setFlash('error', 'Такого пользователя нет в БД или введен неверный пароль');
         }
@@ -85,17 +114,48 @@ class AuthController extends Controller
     public function actionRecover()
     {
         $model = new Recover();
+        $session = Yii::$app->session;
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            $currentUser = User::find()
-                ->where(['email' => $model->email])
-                ->one();
-//
+            $recover = $this->userRecoverPasswordService->reset($model);
+            if ($recover) {
+                $session->setFlash('success', 'Ссылка для сброса пароля отправлена на Вашу почту');
+                return $this->redirect(['auth/authorization']);
+            } else {
+                $session->setFlash('error', 'Такого пользователя нет в БД');
+                return $this->redirect(['auth/recover']);
+            }
         }
         return $this->render('recover', ['model' => $model]);
     }
 
-    public function actionConfirm()
+    public function actionChangePassword($ResetHash)
     {
+        $model = new ChangePassword();
+        $session = Yii::$app->session;
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+
+            $user = $this->userRecoverPasswordService->changePassword($model, $ResetHash);
+            $user->save();
+            $session->setFlash('success', 'Пароль успешно изменён.');
+            return $this->redirect(['auth/authorization']);
+
+        } else {
+            return $this->render('changePassword', ['model' => $model]);
+        }
 
     }
+
+    /**
+     * Logout action.
+     *
+     * @return Response
+     */
+    public function actionLogout()
+    {
+        Yii::$app->user->logout();
+        $session = Yii::$app->session;
+        $session->setFlash('success', 'Вы успешно разлогинились.');
+        return $this->redirect(['auth/authorization']);
+    }
+
 }

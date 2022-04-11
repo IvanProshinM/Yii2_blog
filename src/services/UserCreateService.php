@@ -23,7 +23,7 @@ class UserCreateService
             $User->setPassword($model->password);
             $User->gender = $model->gender;
             $User->activateHash = Yii::$app->security->generatePasswordHash($model->email);
-            $User->activatedAt = null;
+            $User->activatedAt = date("F j, Y, g:i a");
 
             return $User;
     }

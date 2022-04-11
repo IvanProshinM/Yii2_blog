@@ -13,7 +13,7 @@ $verifyLink = Yii::$app->urlManager->createAbsoluteUrl(['auth/authorization', 'a
 
     <p>Follow the link below to verify your email:</p>
 
-    <p><?= Html::a(Html::encode($verifyLink), $verifyLink) ?></p>
+    <p><?= Html::a(Html::encode($verifyLink), $verifyLink, ['target'=>'_blank'] ) ?></p>
 </div>
 
 
