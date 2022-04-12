@@ -11,13 +11,15 @@ use yii\web\UploadedFile;
 
 class StaffChangeService
 {
-    public function ChangeStaff(AddStaff $model, string $fileName, Staff $staff): ?Staff
+    public function ChangeStaff(AddStaff $model, ?string $fileName, Staff $staff): ?Staff
     {
         $staff->staffName = $model->staffName;
         $staff->staffPosition = $model->staffPosition;
         $staff->staffSpecialization = $model->staffSpecialization;
         $staff->age = $model->age;
-        $staff->imageFile = $fileName;
+        if ($fileName !== null) {
+            $staff->imageFile = $fileName;
+        }
         return $staff;
     }
 }

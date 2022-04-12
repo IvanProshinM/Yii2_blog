@@ -17,6 +17,7 @@ use Yii;
  */
 class Staff extends \yii\db\ActiveRecord
 {
+
     /**
      * {@inheritdoc}
      */
@@ -31,7 +32,7 @@ class Staff extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['staffName', 'staffPosition', 'staffSpecialization', 'age'], 'string'],
+            [['staffName', 'staffPosition', 'staffSpecialization', 'age', 'imageFile'], 'string'],
         ];
     }
 

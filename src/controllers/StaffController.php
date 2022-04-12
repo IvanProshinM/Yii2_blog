@@ -3,6 +3,7 @@
 
 namespace app\controllers;
 
+use app\models\StaffSearchForm;
 use app\services\StaffChangeService;
 use yii\web\UploadedFile;
 use app\models\AddStaff;
@@ -28,12 +29,11 @@ class StaffController extends Controller
     private $staffChangeService;
 
 
-
     public function __construct(
         $id,
         $module,
         StaffAddService $staffAddService,
-         StaffChangeService $staffChangeService,
+        StaffChangeService $staffChangeService,
         $config = []
     )
     {
@@ -46,6 +46,7 @@ class StaffController extends Controller
     public function actionAddStaff()
     {
         $model = new AddStaff();
+        $model->scenario = AddStaff::SCENARIO_ADD;
         $session = Yii::$app->session;
         $admin = !Yii::$app->user->isGuest && Yii::$app->user->identity->isAdmin();
         if (!$admin) {
@@ -111,20 +112,38 @@ class StaffController extends Controller
             ->where(['id' => $id])
             ->one();
         $model = new AddStaff();
+        $model->scenario = AddStaff::SCENARIO_CHANGE;
         $model->load($staff->attributes, '');
         Yii::warning($staff->attributes);
-        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post()))
+        Yii::warning($staff->attributes);
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
-            $fileName = $model->upload();
-        if ($fileName !== null) {
-            $staff = $this->staffChangeService->ChangeStaff($model, $fileName, $staff);
-            $staff->save();
-            $session->setFlash('success', 'Данные сотрудика успешно изменены.');
+
+            if ($model->validate()) {
+                $fileName = $model->upload();
+                $staff = $this->staffChangeService->ChangeStaff($model, $fileName, $staff);
+                $staff->save();
+                $session->setFlash('success', 'Данные сотрудика успешно изменены.');
+
+            }
+
 
         }
 
 
         return $this->render('staffChange', ['model' => $model]);
     }
+
+    public function actionSearch($query)
+    {
+        $staffList = Staff::find()
+            ->orWhere(['like', 'staffName', $query])
+            ->orWhere(['like', 'staffPosition', $query])
+            ->orWhere(['like', 'staffSpecialization', $query])
+            ->orWhere(['like', 'Age', $query])
+            ->all();
+        return $this->render('staffSearchList', ['staffList' => $staffList]);
+    }
+
 
 }
