@@ -108,7 +108,8 @@ class StaffController extends Controller
     {
         $session = Yii::$app->session;
         $staff = Staff::find()
-            ->oneById($id);
+            ->where(['id' => $id])
+            ->one();
         $model = new AddStaff();
         $model->load($staff->attributes, '');
         Yii::warning($staff->attributes);

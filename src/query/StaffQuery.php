@@ -29,11 +29,5 @@ class StaffQuery extends \yii\db\ActiveQuery
         return parent::one($db);
     }
 
-    public function oneById(string $id) : ?Staff
-    {
-        return $this
-            ->where(['id' => $id])
-            ->one();
-    }
 }
 
