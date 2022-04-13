@@ -11,27 +11,24 @@ use yii\widgets\ListView;
 /* @var $form yii\widgets\ActiveForm */
 /* @var $model app\models\AddStaff */
 /* @var $staffList \app\controllers\StaffController */
+
+$this->registerCssFile("@web/css/staffProfile.css");
+$this->title = 'Search results';
 ?>
-
-
-<? /* foreach ($staffList as $key => $value) {
-    echo $value->staffName;
-    echo $value->staffPosition;
-    echo $value->staffSpecialization;
-    echo $value->age;
-}
-*/ ?>
-
+<h1><?= Html::encode($this->title) ?></h1>
 <?php foreach ($staffList as $key => $value): ?>
-    <tr>
+    <div class="staff-item">
+        <div class="staff-item_image">
+            <img class="profile-photo" src="/files/<?= $value->imageFile ?>" alt="">
+        </div>
+        <div class="search-list_text">
         <p><?= $value->staffName; ?></p>
         <p><?= $value->staffPosition; ?></p>
         <p><?= $value->staffSpecialization; ?></p>
         <p><?= $value->age; ?></p>
-        <div class="staff-item_image">
-            <img class="profile-photo" src="/files/<?= $value->imageFile ?>" alt="">
         </div>
-    </tr>
+
+    </div>
 <?php endforeach; ?>
 
 
